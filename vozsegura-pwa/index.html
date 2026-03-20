@@ -1,0 +1,1375 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>VozSegura P2P</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#070810">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="VozSegura">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,500;0,9..40,600;1,9..40,300&display=swap" rel="stylesheet">
+<!-- GUN.js — motor P2P descentralizado -->
+<script src="https://cdn.jsdelivr.net/npm/gun/gun.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/gun/sea.js"></script>
+<style>
+/* ═══ VARIABLES ═══════════════════════════════════════ */
+:root {
+  --bg:       #070810;
+  --s1:       #0d0f1a;
+  --s2:       #131625;
+  --s3:       #1a1e30;
+  --s4:       #222740;
+  --b1: rgba(255,255,255,0.05);
+  --b2: rgba(255,255,255,0.10);
+  --b3: rgba(255,255,255,0.18);
+  --tx:  #dde1f0;
+  --tx2: #7b82a0;
+  --tx3: #3d4260;
+  --red:    #f04040;
+  --red-g:  rgba(240,64,64,0.18);
+  --amb:    #e8952a;
+  --amb-g:  rgba(232,149,42,0.15);
+  --grn:    #22d48a;
+  --grn-g:  rgba(34,212,138,0.13);
+  --blu:    #4b8ef5;
+  --blu-g:  rgba(75,142,245,0.13);
+  --pur:    #9b6ef5;
+  --r: 13px;
+  --rs: 9px;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{
+  background:var(--bg);color:var(--tx);
+  font-family:'DM Sans',sans-serif;
+  display:flex;justify-content:center;
+  padding:24px 12px 40px;min-height:100vh;
+}
+input,textarea,button{font-family:'DM Sans',sans-serif}
+
+/* ═══ FRAME MÓVIL ═════════════════════════════════════ */
+.phone{
+  width:100%;max-width:390px;
+  background:var(--bg);
+  border-radius:46px;
+  border:1.5px solid rgba(255,255,255,0.08);
+  overflow:hidden;position:relative;
+  box-shadow:0 0 0 8px #0b0c14, 0 0 0 9px rgba(255,255,255,0.04),
+             0 48px 96px rgba(0,0,0,0.85);
+  min-height:860px;display:flex;flex-direction:column;
+}
+
+/* NOTCH */
+.notch{display:flex;justify-content:center;padding:10px 0 0;background:var(--bg)}
+.notch-pill{
+  width:128px;height:34px;background:#000;
+  border-radius:0 0 22px 22px;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 14px;
+}
+.ntime{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:600}
+.nicons{font-size:9px;color:var(--tx2);letter-spacing:1px}
+
+/* ═══ SCREENS ══════════════════════════════════════════ */
+.screen{display:none;flex:1;flex-direction:column;overflow:hidden}
+.screen.on{display:flex}
+
+/* ─── BOOT / SPLASH ─────────────────────────────────── */
+#s-boot{
+  background:var(--bg);
+  justify-content:center;align-items:center;
+  padding:32px 28px;text-align:center;
+}
+.boot-ring{
+  width:88px;height:88px;border-radius:50%;
+  border:2px solid var(--red);
+  display:flex;align-items:center;justify-content:center;
+  font-size:36px;margin:0 auto 20px;
+  position:relative;
+  box-shadow:0 0 32px rgba(240,64,64,0.35);
+  animation:ringPulse 3s infinite;
+}
+@keyframes ringPulse{0%,100%{box-shadow:0 0 32px rgba(240,64,64,0.35)}50%{box-shadow:0 0 56px rgba(240,64,64,0.6)}}
+.boot-title{font-size:30px;font-weight:600;letter-spacing:-1px;margin-bottom:6px}
+.boot-title b{color:var(--red)}
+.boot-tag{font-size:12px;color:var(--tx2);line-height:1.7;margin-bottom:28px}
+
+/* TECH CARDS */
+.tech-stack{display:flex;flex-direction:column;gap:8px;width:100%;margin-bottom:32px}
+.tech-card{
+  background:var(--s2);border:1px solid var(--b2);border-radius:var(--r);
+  padding:12px 14px;display:flex;align-items:flex-start;gap:12px;text-align:left;
+}
+.tc-dot{
+  width:8px;height:8px;border-radius:50%;margin-top:5px;flex-shrink:0;
+}
+.tc-body .tc-name{font-size:13px;font-weight:600;margin-bottom:2px}
+.tc-body .tc-desc{font-size:11px;color:var(--tx2);line-height:1.5}
+.tc-body .tc-tech{
+  font-family:'JetBrains Mono',monospace;font-size:10px;
+  color:var(--grn);margin-top:4px;
+}
+.btn-main{
+  width:100%;padding:15px;background:var(--red);
+  border:none;border-radius:var(--r);color:#fff;
+  font-size:15px;font-weight:600;cursor:pointer;
+  transition:all .2s;margin-bottom:10px;
+}
+.btn-main:active{transform:scale(.97)}
+.btn-ghost{
+  width:100%;padding:13px;background:transparent;
+  border:1px solid var(--b2);border-radius:var(--r);
+  color:var(--tx2);font-size:13px;cursor:pointer;transition:all .2s;
+}
+.btn-ghost:active{background:var(--s2)}
+
+/* ─── REGISTRO ───────────────────────────────────────── */
+#s-reg{overflow:hidden}
+.hdr{
+  padding:14px 20px 12px;
+  display:flex;align-items:center;gap:12px;
+  border-bottom:1px solid var(--b1);background:var(--bg);
+}
+.hdr-back{
+  width:34px;height:34px;background:var(--s2);border:none;
+  border-radius:9px;cursor:pointer;color:var(--tx);font-size:15px;
+  display:flex;align-items:center;justify-content:center;
+}
+.hdr-title{font-size:15px;font-weight:600}
+.regscroll{overflow-y:auto;flex:1;padding:20px 20px 40px;display:flex;flex-direction:column;gap:14px}
+.flabel{
+  font-size:10px;font-family:'JetBrains Mono',monospace;
+  text-transform:uppercase;letter-spacing:1px;color:var(--tx2);
+  margin-bottom:5px;display:block;
+}
+.finput{
+  width:100%;padding:13px 15px;
+  background:var(--s2);border:1px solid var(--b2);
+  border-radius:var(--rs);color:var(--tx);font-size:13px;
+  outline:none;transition:border-color .2s;
+}
+.finput:focus{border-color:rgba(240,64,64,.5)}
+.finput::placeholder{color:var(--tx3)}
+.alias-gen{
+  background:var(--s3);border:1px dashed var(--b3);
+  border-radius:var(--rs);padding:14px;text-align:center;
+}
+.alias-val{
+  font-family:'JetBrains Mono',monospace;font-size:17px;
+  font-weight:700;color:var(--red);margin-bottom:4px;
+}
+.alias-sub{font-size:11px;color:var(--tx3)}
+.alias-btn{
+  background:none;border:none;color:var(--tx2);
+  font-size:11px;cursor:pointer;margin-top:6px;
+  text-decoration:underline;
+}
+.p2p-notice{
+  background:rgba(34,212,138,.07);border:1px solid rgba(34,212,138,.22);
+  border-radius:var(--rs);padding:13px 14px;
+  font-size:11px;color:#86efcd;line-height:1.6;
+}
+.p2p-notice b{color:var(--grn)}
+.toggle-row{
+  background:var(--s2);border:1px solid var(--b2);border-radius:var(--rs);
+  padding:13px 15px;display:flex;align-items:center;justify-content:space-between;
+}
+.tgl-info .tgl-name{font-size:13px;font-weight:500}
+.tgl-info .tgl-sub{font-size:11px;color:var(--tx2);margin-top:2px}
+.sw{position:relative;width:42px;height:24px;flex-shrink:0}
+.sw input{opacity:0;width:0;height:0}
+.sw-track{
+  position:absolute;inset:0;background:var(--grn);
+  border-radius:12px;cursor:pointer;transition:.2s;
+}
+.sw input:not(:checked)+.sw-track{background:var(--s4)}
+.sw-track:before{
+  content:'';position:absolute;
+  width:18px;height:18px;left:3px;bottom:3px;
+  background:#fff;border-radius:50%;transition:.2s;
+}
+.sw input:checked+.sw-track:before{transform:translateX(18px)}
+
+/* ─── PRINCIPAL ──────────────────────────────────────── */
+#s-main{background:var(--bg)}
+.topbar{
+  padding:10px 18px 8px;
+  display:flex;align-items:center;justify-content:space-between;
+}
+.tb-user{display:flex;align-items:center;gap:10px}
+.avatar{
+  width:36px;height:36px;border-radius:50%;
+  background:var(--red);
+  display:flex;align-items:center;justify-content:center;
+  font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:700;
+}
+.tb-name{font-size:13px;font-weight:600}
+.tb-alias{font-size:10px;color:var(--tx2);font-family:'JetBrains Mono',monospace}
+.tb-right{display:flex;gap:7px}
+.ibtn{
+  width:34px;height:34px;background:var(--s2);
+  border:1px solid var(--b1);border-radius:9px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:15px;cursor:pointer;border:none;position:relative;
+}
+.ndot{
+  position:absolute;top:5px;right:5px;
+  width:7px;height:7px;border-radius:50%;
+  background:var(--red);border:1.5px solid var(--bg);
+}
+
+/* ─── P2P STATUS BAR ──────────────────────────────────── */
+.p2p-bar{
+  margin:0 16px 10px;
+  background:var(--s1);border:1px solid var(--b2);
+  border-radius:var(--r);padding:10px 14px;
+  display:flex;align-items:center;gap:10px;
+}
+.p2p-indicator{
+  display:flex;align-items:center;gap:6px;flex:1;
+}
+.p2p-ring{
+  width:28px;height:28px;border-radius:50%;
+  border:2px solid var(--grn);
+  display:flex;align-items:center;justify-content:center;
+  position:relative;flex-shrink:0;
+}
+.p2p-ring::after{
+  content:'';position:absolute;inset:-4px;
+  border-radius:50%;border:2px solid rgba(34,212,138,.3);
+  animation:p2pPulse 2s infinite;
+}
+@keyframes p2pPulse{0%,100%{transform:scale(1);opacity:.6}50%{transform:scale(1.2);opacity:0}}
+.p2p-dot{width:8px;height:8px;border-radius:50%;background:var(--grn)}
+.p2p-info{}
+.p2p-status{font-size:11px;font-weight:600;color:var(--grn)}
+.p2p-peers{
+  font-size:10px;color:var(--tx2);
+  font-family:'JetBrains Mono',monospace;
+}
+.p2p-sync{
+  font-size:10px;font-family:'JetBrains Mono',monospace;
+  color:var(--tx3);
+}
+.sync-dot{
+  display:inline-block;width:5px;height:5px;border-radius:50%;
+  background:var(--grn);margin-right:4px;
+  animation:syncBlink 1.4s infinite;
+}
+@keyframes syncBlink{0%,100%{opacity:1}50%{opacity:.2}}
+
+/* ─── MAPA ────────────────────────────────────────────── */
+.mapbox{
+  margin:0 16px 12px;
+  border-radius:18px;overflow:hidden;position:relative;
+  height:210px;border:1px solid var(--b2);
+}
+.mapbox svg{width:100%;height:100%;display:block}
+.map-top{
+  position:absolute;top:10px;left:10px;right:10px;
+  display:flex;justify-content:space-between;align-items:center;
+  pointer-events:none;
+}
+.mbadge{
+  background:rgba(7,8,16,.88);border:1px solid var(--b2);
+  backdrop-filter:blur(8px);border-radius:20px;
+  padding:5px 12px;font-size:11px;
+  font-family:'JetBrains Mono',monospace;
+  display:flex;align-items:center;gap:5px;
+}
+.mbadge .rl{color:var(--red)}
+
+/* ─── QUICK BTN ──────────────────────────────────────── */
+.quick{
+  margin:0 16px 4px;
+  background:var(--s1);border:1px solid var(--b2);border-radius:var(--r);
+  padding:12px 15px;display:flex;align-items:center;gap:12px;
+  cursor:pointer;transition:background .15s;
+}
+.quick:active{background:var(--s2)}
+.q-icon{
+  width:40px;height:40px;border-radius:11px;
+  background:var(--red-g);border:1px solid rgba(240,64,64,.3);
+  display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0;
+}
+.q-tx{}
+.q-name{font-size:13px;font-weight:600;margin-bottom:2px}
+.q-sub{font-size:11px;color:var(--tx2)}
+.q-arr{color:var(--tx3);font-size:17px;margin-left:auto}
+
+/* ─── FEED ────────────────────────────────────────────── */
+.sec-hdr{
+  padding:14px 20px 8px;
+  font-size:12px;font-weight:600;
+  display:flex;align-items:center;justify-content:space-between;
+}
+.sec-all{font-size:11px;color:var(--red);font-weight:400;cursor:pointer}
+.feedlist{
+  flex:1;overflow-y:auto;
+  padding:0 16px 82px;display:flex;flex-direction:column;gap:8px;
+}
+.acard{
+  background:var(--s1);border:1px solid var(--b1);
+  border-radius:var(--r);padding:12px 14px;
+  cursor:pointer;transition:all .15s;
+  animation:slideUp .25s ease;
+}
+@keyframes slideUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.acard:active{background:var(--s2);transform:scale(.99)}
+.atop{display:flex;align-items:center;justify-content:space-between;margin-bottom:7px}
+.tbadge{
+  font-size:9px;font-family:'JetBrains Mono',monospace;
+  text-transform:uppercase;letter-spacing:.6px;
+  padding:3px 8px;border-radius:5px;
+}
+.tv{background:rgba(240,64,64,.15);color:#fca5a5}
+.td{background:rgba(232,149,42,.15);color:#fde68a}
+.tr{background:rgba(75,142,245,.15);color:#93c5fd}
+.te{background:rgba(155,110,245,.15);color:#d8b4fe}
+.ts{background:rgba(34,212,138,.15);color:#86efcd}
+.atime{font-size:10px;color:var(--tx3);font-family:'JetBrains Mono',monospace}
+.adesc{font-size:12px;line-height:1.5;margin-bottom:8px}
+.afoot{display:flex;align-items:center;justify-content:space-between}
+.azona{font-size:11px;color:var(--tx2)}
+.avotes{display:flex;gap:5px}
+.vbtn{
+  padding:3px 9px;border-radius:16px;
+  border:1px solid var(--b2);background:var(--s2);
+  font-size:10px;color:var(--tx2);cursor:pointer;
+  font-family:'JetBrains Mono',monospace;transition:all .15s;
+}
+.vbtn.ok{background:rgba(34,212,138,.1);border-color:rgba(34,212,138,.35);color:var(--grn)}
+/* P2P tag en cada card */
+.p2p-tag{
+  font-size:9px;font-family:'JetBrains Mono',monospace;
+  color:var(--tx3);margin-top:6px;
+  display:flex;align-items:center;gap:4px;
+}
+.p2p-tag span{color:var(--grn);opacity:.7}
+
+/* ─── BOTTOM NAV ──────────────────────────────────────── */
+.bnav{
+  position:absolute;bottom:0;left:0;right:0;
+  background:rgba(7,8,16,.96);border-top:1px solid var(--b2);
+  backdrop-filter:blur(14px);
+  display:flex;align-items:center;
+  padding:8px 0 12px;z-index:50;
+}
+.ni{
+  flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;
+  padding:5px 0;cursor:pointer;transition:all .15s;
+  background:none;border:none;color:var(--tx3);
+}
+.ni.on{color:var(--red)}
+.ni-ic{font-size:19px}
+.ni-lb{font-size:9px;font-family:'JetBrains Mono',monospace;text-transform:uppercase;letter-spacing:.4px}
+.nfab{
+  width:52px;height:52px;border-radius:15px;
+  background:var(--red);border:none;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  font-size:22px;color:#fff;
+  box-shadow:0 4px 20px rgba(240,64,64,.5);
+  transition:all .2s;margin:-14px 6px 0;flex-shrink:0;
+}
+.nfab:active{transform:scale(.93)}
+
+/* ─── DENUNCIA ────────────────────────────────────────── */
+#s-den{overflow:hidden}
+.denscroll{overflow-y:auto;flex:1;padding:18px 20px 100px;display:flex;flex-direction:column;gap:14px}
+.tgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.tc2{
+  background:var(--s2);border:1.5px solid var(--b1);
+  border-radius:11px;padding:12px 6px;text-align:center;
+  cursor:pointer;transition:all .15s;
+}
+.tc2 .tic{font-size:21px}
+.tc2 .tnm{font-size:11px;color:var(--tx2);margin-top:4px;font-weight:500}
+.tc2.sel{border-color:var(--red);background:var(--red-g)}
+.tc2.sel .tnm{color:var(--tx)}
+.urgrow{display:flex;gap:7px}
+.ub{
+  flex:1;padding:10px 5px;background:var(--s2);
+  border:1.5px solid var(--b1);border-radius:10px;
+  cursor:pointer;transition:all .15s;text-align:center;
+}
+.ub .uic{font-size:15px}
+.ub .ulb{font-size:10px;color:var(--tx2);margin-top:3px;display:block}
+.ub.sel-b{border-color:var(--blu);background:var(--blu-g)}
+.ub.sel-m{border-color:var(--amb);background:var(--amb-g)}
+.ub.sel-a{border-color:var(--red);background:var(--red-g)}
+.dtxt{
+  width:100%;min-height:86px;
+  background:var(--s2);border:1px solid var(--b2);
+  border-radius:var(--rs);padding:13px 14px;
+  color:var(--tx);font-size:13px;resize:none;outline:none;
+  transition:border-color .2s;
+}
+.dtxt:focus{border-color:rgba(240,64,64,.4)}
+.dtxt::placeholder{color:var(--tx3)}
+.mrow{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.mdbtn{
+  background:var(--s2);border:1px dashed var(--b2);
+  border-radius:var(--rs);padding:15px;text-align:center;
+  cursor:pointer;transition:all .2s;
+}
+.mdbtn:active{border-color:var(--grn);background:var(--grn-g)}
+.mdbtn .mdic{font-size:20px}
+.mdbtn .mdtx{font-size:11px;color:var(--tx2);margin-top:4px}
+.mdbtn .mdex{font-size:9px;color:var(--grn);margin-top:3px}
+
+/* P2P PANEL en el formulario */
+.p2p-panel{
+  background:var(--s1);border:1px solid rgba(34,212,138,.2);
+  border-radius:var(--r);padding:13px 15px;
+}
+.p2p-panel-title{
+  font-size:11px;font-family:'JetBrains Mono',monospace;
+  color:var(--grn);margin-bottom:10px;display:flex;align-items:center;gap:6px;
+}
+.p2p-node{
+  display:flex;align-items:center;gap:8px;
+  padding:6px 0;border-bottom:1px solid var(--b1);
+}
+.p2p-node:last-child{border:none}
+.pn-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.pn-id{
+  font-family:'JetBrains Mono',monospace;font-size:10px;
+  color:var(--tx2);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+}
+.pn-ms{font-size:10px;color:var(--tx3);font-family:'JetBrains Mono',monospace}
+
+/* CIFRADO VISUAL */
+.cifrado-box{
+  background:var(--s2);border:1px solid var(--b2);
+  border-radius:var(--rs);padding:12px 14px;
+  font-family:'JetBrains Mono',monospace;font-size:10px;
+  color:var(--tx3);line-height:1.7;word-break:break-all;
+  position:relative;overflow:hidden;
+}
+.cifrado-box .cf-label{
+  font-size:9px;color:var(--grn);margin-bottom:6px;display:block;
+  text-transform:uppercase;letter-spacing:1px;
+}
+.cf-cursor{
+  display:inline-block;width:6px;height:12px;
+  background:var(--grn);margin-left:2px;
+  animation:blink .8s infinite;vertical-align:middle;
+}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
+
+/* ─── PERFIL ──────────────────────────────────────────── */
+#s-perfil{overflow-y:auto;padding-bottom:80px}
+.phero{padding:22px 20px 18px;text-align:center;border-bottom:1px solid var(--b1)}
+.pav{
+  width:70px;height:70px;border-radius:50%;background:var(--red);
+  display:flex;align-items:center;justify-content:center;
+  font-size:26px;font-weight:700;font-family:'JetBrains Mono',monospace;
+  margin:0 auto 12px;border:3px solid rgba(240,64,64,.25);
+}
+.pname{font-size:17px;font-weight:600;margin-bottom:4px}
+.palias{
+  font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--tx2);
+  background:var(--s2);border:1px solid var(--b2);
+  display:inline-block;padding:3px 12px;border-radius:20px;margin-bottom:14px;
+}
+.pstats{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;padding:16px}
+.ps{
+  background:var(--s2);border:1px solid var(--b1);
+  border-radius:11px;padding:14px 8px;text-align:center;
+}
+.ps-n{font-size:22px;font-weight:700;font-family:'JetBrains Mono',monospace}
+.ps-l{font-size:9px;color:var(--tx3);margin-top:3px;font-family:'JetBrains Mono',monospace;text-transform:uppercase}
+
+/* P2P IDENTITY en perfil */
+.p2p-id-box{
+  margin:0 16px 16px;
+  background:var(--s1);border:1px solid rgba(34,212,138,.18);
+  border-radius:var(--r);padding:13px 15px;
+}
+.pid-title{
+  font-size:10px;font-family:'JetBrains Mono',monospace;
+  text-transform:uppercase;letter-spacing:1px;color:var(--grn);margin-bottom:8px;
+}
+.pid-key{
+  font-family:'JetBrains Mono',monospace;font-size:10px;
+  color:var(--tx2);word-break:break-all;line-height:1.6;
+  background:var(--s2);padding:8px 10px;border-radius:8px;margin-bottom:6px;
+}
+.pid-note{font-size:10px;color:var(--tx3);line-height:1.5}
+
+.srow{
+  margin:0 16px 8px;background:var(--s1);border:1px solid var(--b1);
+  border-radius:10px;padding:13px 15px;
+  display:flex;align-items:center;justify-content:space-between;cursor:pointer;
+}
+.srow:active{background:var(--s2)}
+.sl{display:flex;align-items:center;gap:11px}
+.sic{font-size:17px}.snm{font-size:13px;font-weight:500}.ssb{font-size:11px;color:var(--tx2)}
+.sarr{color:var(--tx3);font-size:13px}
+
+/* ─── STATS ───────────────────────────────────────────── */
+#s-stats{overflow-y:auto;padding-bottom:80px}
+.stshdr{padding:16px 20px 14px;border-bottom:1px solid var(--b1)}
+.stshdr-t{font-size:17px;font-weight:600}
+.stshdr-s{font-size:11px;color:var(--tx2);margin-top:2px}
+.bigstats{display:grid;grid-template-columns:1fr 1fr;gap:9px;padding:14px 16px}
+.bst{background:var(--s1);border:1px solid var(--b1);border-radius:var(--r);padding:14px}
+.bst-n{font-size:28px;font-weight:700;font-family:'JetBrains Mono',monospace;line-height:1}
+.bst-l{font-size:11px;color:var(--tx2);margin-top:5px}
+.bst-t{font-size:10px;margin-top:3px;font-family:'JetBrains Mono',monospace}
+.tu{color:var(--red)}.tok{color:var(--grn)}
+.barsec{padding:0 16px 14px}
+.barsec-t{font-size:10px;font-family:'JetBrains Mono',monospace;text-transform:uppercase;letter-spacing:1px;color:var(--tx2);margin-bottom:10px}
+.brow{display:flex;align-items:center;gap:9px;margin-bottom:9px}
+.btp{font-size:11px;color:var(--tx2);width:60px;flex-shrink:0}
+.btrk{flex:1;height:5px;background:var(--s3);border-radius:3px;overflow:hidden}
+.bfill{height:100%;border-radius:3px;transition:width 1.2s cubic-bezier(.34,1,.5,1);width:0}
+.bpct{font-size:10px;font-family:'JetBrains Mono',monospace;color:var(--tx2);width:26px;text-align:right}
+.zonas{padding:0 16px 16px}
+.zonas-t{font-size:10px;font-family:'JetBrains Mono',monospace;text-transform:uppercase;letter-spacing:1px;color:var(--tx2);margin-bottom:10px}
+.zitem{
+  background:var(--s1);border:1px solid var(--b1);border-radius:11px;
+  padding:11px 13px;display:flex;align-items:center;gap:11px;margin-bottom:7px;
+}
+.zrk{font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:700;color:var(--tx3);width:22px;flex-shrink:0}
+.zrk.top{color:var(--red)}
+.zinf{flex:1}
+.znm{font-size:13px;font-weight:500}
+.zcnt{font-size:11px;color:var(--tx2);margin-top:1px}
+.zlv{font-size:9px;font-family:'JetBrains Mono',monospace;padding:3px 8px;border-radius:5px;text-transform:uppercase}
+.lc{background:var(--red-g);color:#fca5a5}
+.la{background:var(--amb-g);color:#fde68a}
+.lm{background:var(--blu-g);color:#93c5fd}
+
+/* P2P NODOS en stats */
+.nodos-section{padding:0 16px 16px}
+.nodos-title{font-size:10px;font-family:'JetBrains Mono',monospace;text-transform:uppercase;letter-spacing:1px;color:var(--tx2);margin-bottom:10px}
+.nodo-grid{display:flex;flex-wrap:wrap;gap:6px}
+.nodo-chip{
+  background:var(--s2);border:1px solid var(--b2);
+  border-radius:20px;padding:4px 10px;
+  font-family:'JetBrains Mono',monospace;font-size:9px;
+  display:flex;align-items:center;gap:5px;
+}
+.nc-dot{width:6px;height:6px;border-radius:50%}
+
+/* ─── TOAST ───────────────────────────────────────────── */
+.toast{
+  position:absolute;bottom:78px;left:14px;right:14px;
+  background:var(--s2);border:1px solid rgba(34,212,138,.38);
+  border-radius:var(--r);padding:13px 15px;
+  transform:translateY(18px);opacity:0;
+  transition:all .32s cubic-bezier(.34,1.56,.64,1);
+  z-index:200;pointer-events:none;
+}
+.toast.vis{transform:translateY(0);opacity:1}
+.toast-t{font-size:13px;font-weight:600;color:var(--grn);margin-bottom:3px}
+.toast-s{font-size:10px;color:var(--tx2);font-family:'JetBrains Mono',monospace}
+
+/* ─── MAP POPUP ───────────────────────────────────────── */
+.mpop{
+  position:absolute;background:var(--s2);
+  border:1px solid var(--b3);border-radius:12px;
+  padding:13px 14px;min-width:190px;
+  opacity:0;transition:opacity .15s;
+  pointer-events:none;z-index:10;
+  box-shadow:0 8px 28px rgba(0,0,0,.6);
+}
+.mpop.vis{opacity:1;pointer-events:auto}
+.mpop-tipo{font-size:10px;font-family:'JetBrains Mono',monospace;margin-bottom:5px;text-transform:uppercase}
+.mpop-desc{font-size:11px;line-height:1.5;color:var(--tx);margin-bottom:7px}
+.mpop-meta{font-size:10px;color:var(--tx3);font-family:'JetBrains Mono',monospace;margin-bottom:8px}
+.mpop-close{position:absolute;top:7px;right:9px;background:none;border:none;cursor:pointer;color:var(--tx3);font-size:13px}
+.mpop-btns{display:flex;gap:5px}
+
+/* SCROLLBAR */
+::-webkit-scrollbar{width:3px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--b2);border-radius:2px}
+</style>
+</head>
+<body>
+
+<div class="phone">
+
+  <!-- NOTCH -->
+  <div class="notch">
+    <div class="notch-pill">
+      <span class="ntime" id="clock">9:41</span>
+      <span class="nicons">▲▲▲ 🔋</span>
+    </div>
+  </div>
+
+  <!-- ════ BOOT ════════════════════════════════════════ -->
+  <div class="screen on" id="s-boot">
+    <div class="boot-ring">🛡️</div>
+    <h1 class="boot-title">Voz<b>Segura</b></h1>
+    <p class="boot-tag">Red ciudadana descentralizada.<br>Sin servidor central. Sin punto de falla.<br>Imposible de cerrar.</p>
+
+    <div class="tech-stack">
+      <div class="tech-card">
+        <div class="tc-dot" style="background:var(--grn)"></div>
+        <div class="tc-body">
+          <div class="tc-name">Base de datos P2P</div>
+          <div class="tc-desc">Los datos viven en los dispositivos de todos. Ningún servidor puede ser clausurado.</div>
+          <div class="tc-tech">GUN.js · WebRTC · DAG</div>
+        </div>
+      </div>
+      <div class="tech-card">
+        <div class="tc-dot" style="background:var(--blu)"></div>
+        <div class="tc-body">
+          <div class="tc-name">Identidad criptográfica</div>
+          <div class="tc-desc">Clave privada generada en tu dispositivo. Nadie más la tiene. Ni nosotros.</div>
+          <div class="tc-tech">SEA · ECDSA · Ed25519</div>
+        </div>
+      </div>
+      <div class="tech-card">
+        <div class="tc-dot" style="background:var(--red)"></div>
+        <div class="tc-body">
+          <div class="tc-name">Denuncia anónima</div>
+          <div class="tc-desc">Tu alias se desvincula criptográficamente de tu identidad real al denunciar.</div>
+          <div class="tc-tech">Ring signatures · Tor opcional</div>
+        </div>
+      </div>
+    </div>
+
+    <button class="btn-main" onclick="go('s-reg')">Crear identidad P2P</button>
+    <button class="btn-ghost" onclick="guestLogin()">Entrar sin cuenta (solo lectura)</button>
+  </div>
+
+  <!-- ════ REGISTRO ════════════════════════════════════ -->
+  <div class="screen" id="s-reg">
+    <div class="hdr">
+      <button class="hdr-back" onclick="go('s-boot')">←</button>
+      <span class="hdr-title">Nueva identidad</span>
+    </div>
+    <div class="regscroll">
+
+      <div>
+        <span class="flabel">Nombre (local · nunca sale del dispositivo)</span>
+        <input class="finput" type="text" placeholder="Solo lo ves tú" id="r-nombre">
+      </div>
+      <div>
+        <span class="flabel">Contraseña para tu clave privada</span>
+        <input class="finput" type="password" placeholder="Mínimo 10 caracteres" id="r-pass">
+        <div style="font-size:10px;color:var(--tx3);margin-top:5px;font-family:'JetBrains Mono',monospace">
+          Tu clave se genera localmente con SEA/ECDSA. No existe en ningún servidor.
+        </div>
+      </div>
+      <div>
+        <span class="flabel">Tu alias público (seudónimo)</span>
+        <div class="alias-gen">
+          <div class="alias-val" id="alias-val">Aguila_Libre_83</div>
+          <div class="alias-sub">La comunidad te verá así al denunciar</div>
+          <button class="alias-btn" onclick="newAlias()">↻ Generar otro</button>
+        </div>
+      </div>
+      <div>
+        <span class="flabel">Zona (opcional)</span>
+        <input class="finput" type="text" placeholder="Ej: Col. Centro, Puerto Vallarta" id="r-zona">
+      </div>
+
+      <div class="toggle-row">
+        <div class="tgl-info">
+          <div class="tgl-name">🕵️ Denuncia siempre anónima</div>
+          <div class="tgl-sub">Solo tu alias aparece en los reportes</div>
+        </div>
+        <label class="sw"><input type="checkbox" checked><span class="sw-track"></span></label>
+      </div>
+
+      <div class="p2p-notice">
+        <b>¿Cómo funciona la identidad P2P?</b><br>
+        Al registrarte, GUN SEA genera un par de claves criptográficas <b>en tu dispositivo</b>. Tu alias se vincula a tu clave pública. Las denuncias se firman con tu clave privada, pero en modo anónimo se usa una clave temporal desechable.
+      </div>
+
+      <button class="btn-main" onclick="registrar()">Generar claves y entrar</button>
+    </div>
+  </div>
+
+  <!-- ════ PRINCIPAL ═══════════════════════════════════ -->
+  <div class="screen" id="s-main">
+    <div class="topbar">
+      <div class="tb-user">
+        <div class="avatar" id="m-av">A</div>
+        <div>
+          <div class="tb-name" id="m-name">Ciudadano</div>
+          <div class="tb-alias" id="m-alias">@Aguila_Libre_83</div>
+        </div>
+      </div>
+      <div class="tb-right">
+        <button class="ibtn">🔔<span class="ndot"></span></button>
+        <button class="ibtn">⚙️</button>
+      </div>
+    </div>
+
+    <!-- P2P STATUS -->
+    <div class="p2p-bar">
+      <div class="p2p-ring"><div class="p2p-dot"></div></div>
+      <div class="p2p-indicator">
+        <div class="p2p-info">
+          <div class="p2p-status">Red P2P activa</div>
+          <div class="p2p-peers" id="peer-count">Conectando con peers…</div>
+        </div>
+      </div>
+      <div class="p2p-sync"><span class="sync-dot"></span><span id="sync-txt">sincronizando</span></div>
+    </div>
+
+    <!-- MAPA -->
+    <div class="mapbox">
+      <svg viewBox="0 0 390 210" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <radialGradient id="hr" cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stop-color="rgba(240,64,64,0.6)"/>
+            <stop offset="100%" stop-color="rgba(240,64,64,0)"/>
+          </radialGradient>
+          <radialGradient id="ha" cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stop-color="rgba(232,149,42,0.5)"/>
+            <stop offset="100%" stop-color="rgba(232,149,42,0)"/>
+          </radialGradient>
+          <radialGradient id="hb" cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stop-color="rgba(75,142,245,0.4)"/>
+            <stop offset="100%" stop-color="rgba(75,142,245,0)"/>
+          </radialGradient>
+          <filter id="gb"><feGaussianBlur stdDeviation="9"/></filter>
+        </defs>
+        <rect width="390" height="210" fill="#0a0c16"/>
+        <g opacity="0.45">
+          <rect x="0" y="0" width="52" height="36" rx="2" fill="#10141f"/>
+          <rect x="62" y="0" width="42" height="28" rx="2" fill="#10141f"/>
+          <rect x="114" y="0" width="68" height="42" rx="2" fill="#10141f"/>
+          <rect x="192" y="0" width="52" height="32" rx="2" fill="#10141f"/>
+          <rect x="254" y="0" width="62" height="38" rx="2" fill="#10141f"/>
+          <rect x="326" y="0" width="64" height="28" rx="2" fill="#10141f"/>
+          <rect x="0" y="55" width="72" height="52" rx="2" fill="#10141f"/>
+          <rect x="82" y="55" width="52" height="42" rx="2" fill="#10141f"/>
+          <rect x="144" y="50" width="76" height="52" rx="2" fill="#10141f"/>
+          <rect x="230" y="55" width="86" height="42" rx="2" fill="#10141f"/>
+          <rect x="326" y="50" width="64" height="52" rx="2" fill="#10141f"/>
+          <rect x="0" y="132" width="76" height="58" rx="2" fill="#10141f"/>
+          <rect x="86" y="138" width="66" height="48" rx="2" fill="#10141f"/>
+          <rect x="162" y="132" width="86" height="58" rx="2" fill="#10141f"/>
+          <rect x="258" y="138" width="62" height="48" rx="2" fill="#10141f"/>
+          <rect x="330" y="132" width="60" height="58" rx="2" fill="#10141f"/>
+        </g>
+        <line x1="0" y1="46" x2="390" y2="46" stroke="#151c2a" stroke-width="9"/>
+        <line x1="0" y1="120" x2="390" y2="120" stroke="#151c2a" stroke-width="9"/>
+        <line x1="56" y1="0" x2="56" y2="210" stroke="#151c2a" stroke-width="8"/>
+        <line x1="138" y1="0" x2="138" y2="210" stroke="#151c2a" stroke-width="8"/>
+        <line x1="224" y1="0" x2="224" y2="210" stroke="#151c2a" stroke-width="10"/>
+        <line x1="320" y1="0" x2="320" y2="210" stroke="#151c2a" stroke-width="8"/>
+        <line x1="0" y1="82" x2="390" y2="82" stroke="#12172'0" stroke-width="5"/>
+        <line x1="96" y1="0" x2="96" y2="210" stroke="#121720" stroke-width="4"/>
+        <line x1="182" y1="0" x2="182" y2="210" stroke="#121720" stroke-width="4"/>
+        <line x1="272" y1="0" x2="272" y2="210" stroke="#121720" stroke-width="4"/>
+        <!-- CALOR -->
+        <ellipse cx="185" cy="95" rx="68" ry="52" fill="url(#hr)" filter="url(#gb)"/>
+        <ellipse cx="80" cy="55" rx="52" ry="42" fill="url(#ha)" filter="url(#gb)"/>
+        <ellipse cx="300" cy="148" rx="48" ry="38" fill="url(#hb)" filter="url(#gb)"/>
+        <!-- MARCADORES -->
+        <g style="cursor:pointer" onclick="mclick('Violencia','Riña en mercado central. Reportado por 3 nodos.','Centro','Hace 9 min',8)">
+          <circle cx="185" cy="95" r="9" fill="rgba(240,64,64,.3)" style="animation:p2pPulse 1.8s infinite"/>
+          <circle cx="185" cy="95" r="6" fill="#f04040" stroke="#fca5a5" stroke-width="1"/>
+          <text x="185" y="99" text-anchor="middle" font-size="5" fill="white">⚡</text>
+        </g>
+        <g style="cursor:pointer" onclick="mclick('Drogas','Punto activo esquina Sur. 5 peers lo confirmaron.','Col. Miravalle','Hace 28 min',12)">
+          <circle cx="79" cy="56" r="6" fill="#e8952a" stroke="#fde68a" stroke-width="1"/>
+          <text x="79" y="60" text-anchor="middle" font-size="5" fill="white">💊</text>
+        </g>
+        <g style="cursor:pointer" onclick="mclick('Robo','Asaltos nocturnos frecuentes. Propagado en la red.','Av. Reforma','Hace 1 hr',5)">
+          <circle cx="302" cy="150" r="6" fill="#4b8ef5" stroke="#93c5fd" stroke-width="1"/>
+          <text x="302" y="154" text-anchor="middle" font-size="5" fill="white">🚨</text>
+        </g>
+        <g style="cursor:pointer" onclick="mclick('Extorsión','Cobro de piso zona comercial. Hash verificado.','Zona Comercial','Hace 3 hrs',15)">
+          <circle cx="228" cy="162" r="6" fill="#9b6ef5" stroke="#d8b4fe" stroke-width="1"/>
+          <text x="228" y="166" text-anchor="middle" font-size="5" fill="white">⚠️</text>
+        </g>
+        <!-- Marcador nuevo (oculto) -->
+        <g id="nm" opacity="0">
+          <circle cx="148" cy="75" r="8" fill="rgba(34,212,138,.25)"/>
+          <circle cx="148" cy="75" r="5" fill="#22d48a" stroke="#86efcd" stroke-width="1"/>
+          <text x="148" y="79" text-anchor="middle" font-size="5" fill="white">📍</text>
+        </g>
+      </svg>
+      <div class="map-top">
+        <div class="mbadge"><span class="rl">●</span> ALTO · 4 zonas</div>
+      </div>
+    </div>
+
+    <!-- QUICK -->
+    <div class="quick" onclick="go('s-den')">
+      <div class="q-icon">🚨</div>
+      <div class="q-tx">
+        <div class="q-name">Denunciar ahora</div>
+        <div class="q-sub">Anónimo · P2P · Sin servidor</div>
+      </div>
+      <div class="q-arr">›</div>
+    </div>
+
+    <!-- FEED -->
+    <div class="sec-hdr">
+      Alertas P2P
+      <span class="sec-all">Ver todo</span>
+    </div>
+    <div class="feedlist" id="feedlist"></div>
+
+    <!-- BOTTOM NAV -->
+    <div class="bnav">
+      <button class="ni on" id="ni-mapa" onclick="navTo('ni-mapa','s-main')"><span class="ni-ic">🗺️</span><span class="ni-lb">Mapa</span></button>
+      <button class="ni" id="ni-alrt" onclick="navTo('ni-alrt','s-main')"><span class="ni-ic">🔔</span><span class="ni-lb">Alertas</span></button>
+      <button class="nfab" onclick="go('s-den')">＋</button>
+      <button class="ni" id="ni-stat" onclick="navTo('ni-stat','s-stats')"><span class="ni-ic">📊</span><span class="ni-lb">Stats</span></button>
+      <button class="ni" id="ni-perf" onclick="navTo('ni-perf','s-perfil')"><span class="ni-ic">👤</span><span class="ni-lb">Perfil</span></button>
+    </div>
+
+    <!-- MAPA POPUP -->
+    <div class="mpop" id="mpop">
+      <button class="mpop-close" onclick="closePop()">✕</button>
+      <div class="mpop-tipo" id="pop-tipo"></div>
+      <div class="mpop-desc" id="pop-desc"></div>
+      <div class="mpop-meta" id="pop-meta"></div>
+      <div class="mpop-btns">
+        <button class="vbtn ok" onclick="cfmPop(this)" id="pop-votes">✓ 0</button>
+        <button class="vbtn" onclick="closePop()">✕ Cerrar</button>
+      </div>
+    </div>
+
+    <!-- TOAST -->
+    <div class="toast" id="toast">
+      <div class="toast-t" id="toast-t">✓ Propagado en la red</div>
+      <div class="toast-s" id="toast-s">Cifrado · P2P · Hash verificable</div>
+    </div>
+  </div>
+
+  <!-- ════ DENUNCIA ════════════════════════════════════ -->
+  <div class="screen" id="s-den">
+    <div class="hdr">
+      <button class="hdr-back" onclick="go('s-main')">←</button>
+      <span class="hdr-title">Nueva denuncia</span>
+    </div>
+    <div class="denscroll">
+
+      <div>
+        <span class="flabel" style="margin-bottom:9px">Tipo de incidente</span>
+        <div class="tgrid">
+          <div class="tc2 sel" onclick="selTipo(this,'Violencia')"><div class="tic">⚡</div><div class="tnm">Violencia</div></div>
+          <div class="tc2" onclick="selTipo(this,'Drogas')"><div class="tic">💊</div><div class="tnm">Drogas</div></div>
+          <div class="tc2" onclick="selTipo(this,'Robo')"><div class="tic">🚨</div><div class="tnm">Robo</div></div>
+          <div class="tc2" onclick="selTipo(this,'Extorsión')"><div class="tic">⚠️</div><div class="tnm">Extorsión</div></div>
+          <div class="tc2" onclick="selTipo(this,'Secuestro')"><div class="tic">🔗</div><div class="tnm">Secuestro</div></div>
+          <div class="tc2" onclick="selTipo(this,'Otro')"><div class="tic">📌</div><div class="tnm">Otro</div></div>
+        </div>
+      </div>
+
+      <div>
+        <span class="flabel" style="margin-bottom:8px">Urgencia</span>
+        <div class="urgrow">
+          <div class="ub" onclick="selUrg(this,'b')"><div class="uic">🔵</div><span class="ulb">Baja</span></div>
+          <div class="ub sel-m" onclick="selUrg(this,'m')"><div class="uic">🟡</div><span class="ulb">Media</span></div>
+          <div class="ub" onclick="selUrg(this,'a')"><div class="uic">🔴</div><span class="ulb">Alta</span></div>
+        </div>
+      </div>
+
+      <div>
+        <span class="flabel">Descripción opcional</span>
+        <textarea class="dtxt" id="d-desc" placeholder="Describe lo observado. Sin nombres ni datos personales…"></textarea>
+      </div>
+
+      <div>
+        <span class="flabel">Evidencia</span>
+        <div class="mrow">
+          <div class="mdbtn" onclick="fakeMedia(this,'📷','Foto lista')">
+            <div class="mdic">📷</div>
+            <div class="mdtx">Foto</div>
+            <div class="mdex">EXIF eliminado</div>
+          </div>
+          <div class="mdbtn" onclick="fakeMedia(this,'🎥','Video listo')">
+            <div class="mdic">🎥</div>
+            <div class="mdtx">Video</div>
+            <div class="mdex">Metadatos borrados</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- P2P NODES PANEL -->
+      <div class="p2p-panel">
+        <div class="p2p-panel-title">
+          <span class="sync-dot"></span>
+          Nodos P2P conectados — tu denuncia se propagará a:
+        </div>
+        <div id="p2p-nodes"></div>
+      </div>
+
+      <!-- CIFRADO VISUAL -->
+      <div>
+        <span class="flabel">Vista previa cifrada (SEA/GUN)</span>
+        <div class="cifrado-box">
+          <span class="cf-label">payload cifrado</span>
+          <span id="cf-text">{ "t": "enc", "d": "…" }</span>
+          <span class="cf-cursor"></span>
+        </div>
+      </div>
+
+      <div class="toggle-row" style="background:var(--s1)">
+        <div class="tgl-info">
+          <div class="tgl-name">🕵️ Alias anónimo desechable</div>
+          <div class="tgl-sub">Se genera una clave temporal nueva por denuncia</div>
+        </div>
+        <label class="sw"><input type="checkbox" checked><span class="sw-track"></span></label>
+      </div>
+
+      <button class="btn-main" onclick="enviar()">Firmar y propagar en la red P2P</button>
+    </div>
+  </div>
+
+  <!-- ════ PERFIL ══════════════════════════════════════ -->
+  <div class="screen" id="s-perfil">
+    <div class="hdr">
+      <span class="hdr-title" style="margin-left:4px">Mi identidad P2P</span>
+    </div>
+    <div class="phero">
+      <div class="pav" id="p-av">A</div>
+      <div class="pname" id="p-name">Ciudadano</div>
+      <div class="palias" id="p-alias">@Aguila_Libre_83</div>
+      <div style="font-size:11px;color:var(--tx2)">Identidad local · Clave generada en dispositivo</div>
+    </div>
+    <div class="pstats">
+      <div class="ps"><div class="ps-n" style="color:var(--red)" id="ps-den">0</div><div class="ps-l">Denuncias</div></div>
+      <div class="ps"><div class="ps-n" style="color:var(--grn)" id="ps-ver">0</div><div class="ps-l">Verificadas</div></div>
+      <div class="ps"><div class="ps-n" style="color:var(--amb)" id="ps-pts">0</div><div class="ps-l">Reputación</div></div>
+    </div>
+
+    <!-- CLAVE P2P -->
+    <div class="p2p-id-box">
+      <div class="pid-title">🔑 Tu clave pública (identidad P2P)</div>
+      <div class="pid-key" id="pub-key">Generando par de claves…</div>
+      <div class="pid-note">Esta clave es tu identidad en la red. Las denuncias anónimas usan claves temporales distintas, sin relación con esta.</div>
+    </div>
+
+    <div class="srow" style="margin-top:4px">
+      <div class="sl"><span class="sic">🔔</span><div><div class="snm">Alertas de mi zona</div><div class="ssb">Notificaciones activas</div></div></div>
+      <span class="sarr">›</span>
+    </div>
+    <div class="srow">
+      <div class="sl"><span class="sic">👻</span><div><div class="snm">Modo fantasma</div><div class="ssb">No aparecer en la red</div></div></div>
+      <span class="sarr">›</span>
+    </div>
+    <div class="srow">
+      <div class="sl"><span class="sic">💾</span><div><div class="snm">Exportar nodo local</div><div class="ssb">Compartir datos con la red</div></div></div>
+      <span class="sarr">›</span>
+    </div>
+    <div class="srow">
+      <div class="sl"><span class="sic">🔗</span><div><div class="snm">Invitar peers</div><div class="ssb">Fortalecer la red</div></div></div>
+      <span class="sarr">›</span>
+    </div>
+
+    <div class="bnav">
+      <button class="ni" onclick="navTo('ni-mapa','s-main')"><span class="ni-ic">🗺️</span><span class="ni-lb">Mapa</span></button>
+      <button class="ni" onclick="navTo('ni-alrt','s-main')"><span class="ni-ic">🔔</span><span class="ni-lb">Alertas</span></button>
+      <button class="nfab" onclick="go('s-den')">＋</button>
+      <button class="ni" onclick="navTo('ni-stat','s-stats')"><span class="ni-ic">📊</span><span class="ni-lb">Stats</span></button>
+      <button class="ni on"><span class="ni-ic">👤</span><span class="ni-lb">Perfil</span></button>
+    </div>
+  </div>
+
+  <!-- ════ STATS ════════════════════════════════════════ -->
+  <div class="screen" id="s-stats">
+    <div class="stshdr">
+      <div class="stshdr-t">Estadísticas P2P</div>
+      <div class="stshdr-s" id="stats-zona">Puerto Vallarta · Red descentralizada</div>
+    </div>
+    <div class="bigstats">
+      <div class="bst"><div class="bst-n" style="color:var(--red)">47</div><div class="bst-l">Denuncias totales</div><div class="bst-t tu">↑ +12 vs ayer</div></div>
+      <div class="bst"><div class="bst-n" style="color:var(--grn)">31</div><div class="bst-l">Verificadas por peers</div><div class="bst-t tok">66% confirmación</div></div>
+      <div class="bst"><div class="bst-n" style="color:var(--amb)" id="s-peers-stat">0</div><div class="bst-l">Nodos en red</div><div class="bst-t tok">↑ creciendo</div></div>
+      <div class="bst"><div class="bst-n" style="color:var(--blu)">8</div><div class="bst-l">Zonas activas</div><div class="bst-t tu">↑ 2 nuevas</div></div>
+    </div>
+    <div class="barsec">
+      <div class="barsec-t">Distribución por tipo</div>
+      <div class="brow"><div class="btp">Violencia</div><div class="btrk"><div class="bfill" style="background:var(--red)" data-w="38"></div></div><div class="bpct">38%</div></div>
+      <div class="brow"><div class="btp">Drogas</div><div class="btrk"><div class="bfill" style="background:var(--amb)" data-w="27"></div></div><div class="bpct">27%</div></div>
+      <div class="brow"><div class="btp">Robo</div><div class="btrk"><div class="bfill" style="background:var(--blu)" data-w="21"></div></div><div class="bpct">21%</div></div>
+      <div class="brow"><div class="btp">Extorsión</div><div class="btrk"><div class="bfill" style="background:var(--pur)" data-w="14"></div></div><div class="bpct">14%</div></div>
+    </div>
+    <div class="zonas">
+      <div class="zonas-t">Zonas de mayor riesgo</div>
+      <div class="zitem"><div class="zrk top">1</div><div class="zinf"><div class="znm">Centro Histórico</div><div class="zcnt">12 reportes · Propagados en 8 nodos</div></div><div class="zlv lc">Crítico</div></div>
+      <div class="zitem"><div class="zrk top">2</div><div class="zinf"><div class="znm">Col. Miravalle</div><div class="zcnt">9 reportes · 6 nodos activos</div></div><div class="zlv la">Alto</div></div>
+      <div class="zitem"><div class="zrk">3</div><div class="zinf"><div class="znm">Zona Comercial Norte</div><div class="zcnt">6 reportes · 4 nodos</div></div><div class="zlv la">Alto</div></div>
+      <div class="zitem"><div class="zrk">4</div><div class="zinf"><div class="znm">Parque del Norte</div><div class="zcnt">4 reportes · 3 nodos</div></div><div class="zlv lm">Medio</div></div>
+    </div>
+    <!-- NODOS EN RED -->
+    <div class="nodos-section">
+      <div class="nodos-title">Nodos P2P activos ahora</div>
+      <div class="nodo-grid" id="nodo-grid"></div>
+    </div>
+    <div class="bnav">
+      <button class="ni" onclick="navTo('ni-mapa','s-main')"><span class="ni-ic">🗺️</span><span class="ni-lb">Mapa</span></button>
+      <button class="ni" onclick="navTo('ni-alrt','s-main')"><span class="ni-ic">🔔</span><span class="ni-lb">Alertas</span></button>
+      <button class="nfab" onclick="go('s-den')">＋</button>
+      <button class="ni on"><span class="ni-ic">📊</span><span class="ni-lb">Stats</span></button>
+      <button class="ni" onclick="navTo('ni-perf','s-perfil')"><span class="ni-ic">👤</span><span class="ni-lb">Perfil</span></button>
+    </div>
+  </div>
+
+</div><!-- /phone -->
+
+<script>
+/* ═══════════════════════════════════════════════════════
+   VOZSEGURA P2P — Motor GUN.js descentralizado
+   ═══════════════════════════════════════════════════════ */
+
+// ── INICIALIZAR GUN (P2P en memoria/localStorage) ───────
+// En producción: pasar lista de peers reales ['https://gun-peer1.vozsegura.mx/gun']
+const gun = GUN({ localStorage: true, radisk: false });
+const denunciasNode = gun.get('vozsegura_denuncias_v1');
+
+// ── ESTADO LOCAL ────────────────────────────────────────
+let user = { nombre:'', alias:'Aguila_Libre_83', inicial:'A', denuncias:0, verificadas:0, puntos:0 };
+let tipoSel = 'Violencia';
+let urgSel = 'm';
+let pubKey = '';
+let peerCount = 0;
+let popVotes = 0;
+let feedItems = [];
+
+const aliasA = ['Aguila','Tigre','Puma','Cobra','Lobo','Zorro','Halcon','Jaguar','Leon','Coyote','Pantera','Oso'];
+const aliasB = ['Libre','Nocturno','Valiente','Digital','Activo','Civil','Fuerte','Alerta','Vigilante','Seguro','Comun','Justo'];
+
+// ── CLAVES CRIPTOGRÁFICAS (SEA) ──────────────────────────
+async function generarClaves() {
+  try {
+    const pair = await SEA.pair();
+    pubKey = pair.pub.substring(0, 52) + '…';
+    const el = document.getElementById('pub-key');
+    if (el) el.textContent = pair.pub.substring(0,24)+'…'+pair.pub.slice(-12);
+    return pair;
+  } catch(e) {
+    // SEA puede no estar disponible en todos los navegadores
+    pubKey = 'k_' + Math.random().toString(36).substr(2,18) + '…';
+    const el = document.getElementById('pub-key');
+    if (el) el.textContent = pubKey;
+    return { pub: pubKey, priv: 'local' };
+  }
+}
+
+// ── SIMULACIÓN DE PEERS ──────────────────────────────────
+// En producción, GUN detecta peers reales vía WebRTC/WebSocket
+const fakePeers = [
+  { id:'a3f7…c2e1', ms:12, active:true },
+  { id:'9b2d…44fa', ms:28, active:true },
+  { id:'e510…8b3c', ms:67, active:true },
+  { id:'f1a8…d6e9', ms:134, active:true },
+  { id:'22cc…9011', ms:210, active:false },
+  { id:'77de…3b2a', ms:89, active:true },
+];
+
+function simPeers() {
+  peerCount = fakePeers.filter(p=>p.active).length;
+  document.getElementById('peer-count').textContent = peerCount + ' peers conectados · red viva';
+  document.getElementById('s-peers-stat').textContent = peerCount;
+
+  // Nodos en stats
+  const ng = document.getElementById('nodo-grid');
+  if (ng) {
+    ng.innerHTML = fakePeers.map(p=>`
+      <div class="nodo-chip">
+        <div class="nc-dot" style="background:${p.active?'var(--grn)':'var(--tx3)'}"></div>
+        <span>${p.id}</span>
+        <span style="color:var(--tx3)">${p.ms}ms</span>
+      </div>
+    `).join('');
+  }
+
+  // Nodos en formulario denuncia
+  renderP2PNodes();
+}
+
+function renderP2PNodes() {
+  const el = document.getElementById('p2p-nodes');
+  if (!el) return;
+  el.innerHTML = fakePeers.filter(p=>p.active).map(p=>`
+    <div class="p2p-node">
+      <div class="pn-dot" style="background:var(--grn)"></div>
+      <span class="pn-id">${p.id}</span>
+      <span class="pn-ms">${p.ms}ms</span>
+    </div>
+  `).join('');
+}
+
+// Variar latencia simulada
+setInterval(()=>{
+  fakePeers.forEach(p => { if(p.active) p.ms = Math.max(8, p.ms + Math.round((Math.random()-0.5)*20)); });
+  simPeers();
+  document.getElementById('sync-txt').textContent = 'sincronizado';
+}, 4000);
+
+// ── SEED DATA (datos iniciales en GUN) ───────────────────
+const seedData = [
+  { id:'d001', tipo:'violencia', label:'Violencia', desc:'Riña en mercado central. Reportado por 3 peers.', zona:'Centro Histórico', ts: Date.now()-720000, votos:8, hash:'sha256:a3f7…' },
+  { id:'d002', tipo:'drogas', label:'Drogas', desc:'Punto de venta activo en esquina Sur. 5 peers confirmaron.', zona:'Col. Miravalle', ts: Date.now()-2040000, votos:12, hash:'sha256:9b2d…' },
+  { id:'d003', tipo:'robo', label:'Robo', desc:'Asaltos nocturnos frecuentes. Propagado en red.', zona:'Av. Reforma', ts: Date.now()-3600000, votos:5, hash:'sha256:e510…' },
+  { id:'d004', tipo:'extorsion', label:'Extorsión', desc:'Cobro de piso zona comercial. Hash verificado por peers.', zona:'Zona Comercial', ts: Date.now()-10800000, votos:15, hash:'sha256:f1a8…' },
+];
+
+// Escribir seed en GUN (solo si no existe)
+seedData.forEach(d => {
+  denunciasNode.get(d.id).once(existing => {
+    if (!existing) denunciasNode.get(d.id).put(d);
+  });
+});
+
+// ── ESCUCHAR CAMBIOS EN TIEMPO REAL (GUN P2P) ────────────
+denunciasNode.map().on((data, key) => {
+  if (!data || !data.tipo) return;
+  const exists = feedItems.findIndex(f=>f.id===key);
+  if (exists === -1) {
+    feedItems.unshift({ ...data, id: key });
+    if (feedItems.length > 20) feedItems = feedItems.slice(0,20);
+    renderFeed();
+  }
+});
+
+// ── CIFRADO VISUAL ANIMADO ───────────────────────────────
+const cifFrags = [
+  '{ "t": "enc", "algo": "SEA/AES-GCM" }',
+  '{ "d": "3Kx9p…mQv2+aR1=", "iv": "a4f2…" }',
+  '{ "sig": "MEUCIQDx…kLmN", "pub": "a3f7…" }',
+  '{ "geo": "±500m", "ts": "' + Date.now() + '" }',
+  '{ "hash": "sha256:e3b0c4…2855", "v": 1 }',
+];
+let cfIdx = 0;
+setInterval(()=>{
+  const el = document.getElementById('cf-text');
+  if (el && document.getElementById('s-den').classList.contains('on')) {
+    cfIdx = (cfIdx+1) % cifFrags.length;
+    el.textContent = cifFrags[cfIdx];
+  }
+}, 1800);
+
+// ── RENDERIZAR FEED ──────────────────────────────────────
+function renderFeed() {
+  const el = document.getElementById('feedlist');
+  if (!el) return;
+
+  const items = feedItems.length ? feedItems : seedData;
+  el.innerHTML = items.slice(0,6).map((a,i) => {
+    const ago = timeAgo(a.ts || Date.now() - i*900000);
+    const peerLabel = (a.hash || 'hash:local…').substring(0,16);
+    return `
+    <div class="acard">
+      <div class="atop">
+        <span class="tbadge t${a.tipo ? a.tipo.charAt(0) : 'v'}">${a.label||a.tipo}</span>
+        <span class="atime">${ago}</span>
+      </div>
+      <div class="adesc">${a.desc||''}</div>
+      <div class="afoot">
+        <span class="azona">📍 ${a.zona||'Zona desconocida'}</span>
+        <div class="avotes">
+          <button class="vbtn" onclick="vote(this,'${a.id||i}')">✓ ${a.votos||0}</button>
+          <button class="vbtn" onclick="this.style.color='#fca5a5'">✗</button>
+        </div>
+      </div>
+      <div class="p2p-tag">
+        <span>⬡ P2P</span>
+        ${peerLabel}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function timeAgo(ts) {
+  const diff = Date.now() - ts;
+  const m = Math.floor(diff/60000);
+  if (m < 1) return 'Ahora mismo';
+  if (m < 60) return `Hace ${m} min`;
+  const h = Math.floor(m/60);
+  if (h < 24) return `Hace ${h} hr`;
+  return `Hace ${Math.floor(h/24)} días`;
+}
+
+// ── VOTAR (actualiza en GUN P2P) ─────────────────────────
+function vote(btn, id) {
+  const current = parseInt(btn.textContent.replace('✓ ','')) || 0;
+  const newVotes = current + 1;
+  btn.textContent = '✓ ' + newVotes;
+  btn.classList.add('ok');
+  // Actualizar en la red P2P
+  denunciasNode.get(id).get('votos').once(v => {
+    denunciasNode.get(id).get('votos').put((v||0)+1);
+  });
+}
+
+// ── NAVEGACIÓN ───────────────────────────────────────────
+function go(id) {
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('on'));
+  document.getElementById(id).classList.add('on');
+  if (id==='s-stats') { setTimeout(animBars, 80); simPeers(); }
+  if (id==='s-den') { simPeers(); renderP2PNodes(); }
+}
+
+function navTo(navId, screenId) {
+  go(screenId);
+  document.querySelectorAll('.ni').forEach(b=>b.classList.remove('on'));
+  const btn = document.getElementById(navId);
+  if(btn) btn.classList.add('on');
+}
+
+// ── REGISTRO ─────────────────────────────────────────────
+async function registrar() {
+  const nombre = document.getElementById('r-nombre').value.trim() || 'Ciudadano';
+  const alias = document.getElementById('alias-val').textContent;
+  user.nombre = nombre;
+  user.alias = alias;
+  user.inicial = nombre.charAt(0).toUpperCase();
+
+  // Generar par de claves criptográficas
+  await generarClaves();
+
+  // Actualizar UI
+  ['m-av','p-av'].forEach(id=>{ const el=document.getElementById(id); if(el) el.textContent=user.inicial; });
+  document.getElementById('m-name').textContent = nombre;
+  document.getElementById('m-alias').textContent = '@'+alias;
+  document.getElementById('p-name').textContent = nombre;
+  document.getElementById('p-alias').textContent = '@'+alias;
+
+  go('s-main');
+  renderFeed();
+  simPeers();
+  showToast('✓ Identidad P2P creada','Claves generadas localmente · @'+alias);
+}
+
+function guestLogin() {
+  user.nombre = 'Visitante';
+  user.alias = 'Anonimo_' + Math.floor(Math.random()*9999);
+  user.inicial = '?';
+  document.getElementById('m-av').textContent = '?';
+  document.getElementById('m-name').textContent = 'Solo lectura';
+  document.getElementById('m-alias').textContent = '@'+user.alias;
+  go('s-main');
+  renderFeed();
+  simPeers();
+}
+
+function newAlias() {
+  const a = aliasA[Math.floor(Math.random()*aliasA.length)];
+  const b = aliasB[Math.floor(Math.random()*aliasB.length)];
+  const n = Math.floor(Math.random()*90)+10;
+  document.getElementById('alias-val').textContent = `${a}_${b}_${n}`;
+}
+
+// ── DENUNCIA → PUBLICAR EN RED P2P ───────────────────────
+async function enviar() {
+  const desc = document.getElementById('d-desc').value.trim() || tipoSel + ' reportado por ciudadano.';
+  const zonas = ['Centro Histórico','Col. Norte','Av. Principal','Col. Sur','Parque Municipal','Mercado'];
+  const zona = zonas[Math.floor(Math.random()*zonas.length)];
+
+  // Crear alias temporal desechable (simula clave temporal)
+  const tempAlias = aliasA[Math.floor(Math.random()*aliasA.length)] + '_anon_' + Math.random().toString(36).substr(2,6);
+
+  // Hash simulado (en prod: SHA-256 real del payload)
+  const hash = 'sha256:' + Math.random().toString(36).substr(2,8) + '…';
+
+  const denuncia = {
+    id: 'u_' + Date.now(),
+    tipo: tipoSel.toLowerCase().replace('é','e').replace('ó','o').replace('ú','u'),
+    label: tipoSel,
+    desc: desc,
+    zona: zona,
+    ts: Date.now(),
+    votos: 0,
+    hash: hash,
+    alias: tempAlias, // alias anónimo desechable
+  };
+
+  // ── PUBLICAR EN GUN P2P (persiste en todos los nodos conectados) ──
+  denunciasNode.get(denuncia.id).put(denuncia);
+
+  // Actualizar estadísticas locales
+  user.denuncias++;
+  user.puntos += 10;
+  document.getElementById('ps-den').textContent = user.denuncias;
+  document.getElementById('ps-pts').textContent = user.puntos;
+
+  // Mostrar marcador en mapa
+  const nm = document.getElementById('nm');
+  if (nm) { nm.style.transition='opacity .4s'; nm.setAttribute('opacity','1'); }
+
+  // Reset form
+  document.getElementById('d-desc').value = '';
+
+  go('s-main');
+  renderFeed();
+  showToast('✓ Propagado en la red P2P', hash + ' · @'+tempAlias);
+}
+
+// ── HELPERS ──────────────────────────────────────────────
+function selTipo(el, tipo) {
+  document.querySelectorAll('.tc2').forEach(c=>c.classList.remove('sel'));
+  el.classList.add('sel'); tipoSel = tipo;
+}
+function selUrg(el, u) {
+  document.querySelectorAll('.ub').forEach(b=>{ b.classList.remove('sel-b','sel-m','sel-a'); });
+  el.classList.add('sel-'+u); urgSel = u;
+}
+function fakeMedia(el, ic, txt) {
+  el.innerHTML = `<div class="mdic">${ic}</div><div class="mdtx" style="color:var(--grn)">${txt}</div><div class="mdex">Metadatos eliminados</div>`;
+  el.style.borderColor='rgba(34,212,138,.4)';
+  el.style.background='rgba(34,212,138,.06)';
+}
+
+// ── MAPA POPUP ───────────────────────────────────────────
+function mclick(tipo, desc, zona, tiempo, votos) {
+  popVotes = votos;
+  const colores = { Violencia:'color:#fca5a5', Drogas:'color:#fde68a', Robo:'color:#93c5fd', 'Extorsión':'color:#d8b4fe' };
+  document.getElementById('pop-tipo').innerHTML = `<span style="${colores[tipo]||'color:var(--tx2)'}">▌ ${tipo.toUpperCase()} · ${zona}</span>`;
+  document.getElementById('pop-desc').textContent = desc;
+  document.getElementById('pop-meta').textContent = `🕐 ${tiempo} · Propagado en ${Math.floor(Math.random()*4)+2} nodos`;
+  document.getElementById('pop-votes').textContent = '✓ ' + votos;
+  const pop = document.getElementById('mpop');
+  pop.style.bottom = '90px'; pop.style.left = '16px'; pop.style.right = '16px';
+  pop.classList.add('vis');
+  setTimeout(()=>{ if(pop.classList.contains('vis')) closePop(); }, 6000);
+}
+function closePop(){ document.getElementById('mpop').classList.remove('vis'); }
+function cfmPop(btn){ popVotes++; btn.textContent='✓ '+popVotes; }
+
+// ── STATS BARRAS ─────────────────────────────────────────
+function animBars() {
+  document.querySelectorAll('.bfill').forEach(b=>{ b.style.width=b.dataset.w+'%'; });
+}
+
+// ── TOAST ────────────────────────────────────────────────
+function showToast(title, sub) {
+  document.getElementById('toast-t').textContent = title;
+  document.getElementById('toast-s').textContent = sub;
+  const t = document.getElementById('toast');
+  t.classList.add('vis');
+  setTimeout(()=>t.classList.remove('vis'), 4000);
+}
+
+// ── RELOJ ────────────────────────────────────────────────
+function tick() {
+  const n = new Date();
+  document.getElementById('clock').textContent =
+    n.getHours().toString().padStart(2,'0')+':'+n.getMinutes().toString().padStart(2,'0');
+}
+tick(); setInterval(tick, 15000);
+
+// ── INIT ─────────────────────────────────────────────────
+renderFeed();
+simPeers();
+generarClaves();
+</script>
+<script>
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("sw.js")
+      .then(r => console.log("[VozSegura] SW registrado:", r.scope))
+      .catch(e => console.warn("[VozSegura] SW error:", e));
+  });
+}
+</script>
+</body>
+</html>
