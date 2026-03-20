@@ -1,0 +1,110 @@
+{
+  "name": "VozSegura — Red Ciudadana P2P",
+  "short_name": "VozSegura",
+  "description": "Denuncia ciudadana anónima y descentralizada. Sin servidor central. Sin miedo.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#070810",
+  "theme_color": "#070810",
+  "lang": "es-MX",
+  "categories": ["security", "social", "utilities"],
+
+  "icons": [
+    {
+      "src": "icons/icon-72.png",
+      "sizes": "72x72",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-96.png",
+      "sizes": "96x96",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-128.png",
+      "sizes": "128x128",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-144.png",
+      "sizes": "144x144",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-152.png",
+      "sizes": "152x152",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icons/icon-384.png",
+      "sizes": "384x384",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+
+  "screenshots": [
+    {
+      "src": "icons/screenshot-mobile.png",
+      "sizes": "390x844",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Mapa ciudadano P2P"
+    }
+  ],
+
+  "shortcuts": [
+    {
+      "name": "Denunciar ahora",
+      "short_name": "Denunciar",
+      "description": "Envía una denuncia anónima inmediatamente",
+      "url": "/?accion=denunciar",
+      "icons": [{ "src": "icons/icon-96.png", "sizes": "96x96" }]
+    },
+    {
+      "name": "Ver mapa",
+      "short_name": "Mapa",
+      "description": "Ver zonas de riesgo en tiempo real",
+      "url": "/?accion=mapa",
+      "icons": [{ "src": "icons/icon-96.png", "sizes": "96x96" }]
+    }
+  ],
+
+  "related_applications": [],
+  "prefer_related_applications": false,
+
+  "share_target": {
+    "action": "/?accion=compartir",
+    "method": "POST",
+    "enctype": "multipart/form-data",
+    "params": {
+      "title": "titulo",
+      "text": "texto",
+      "files": [
+        {
+          "name": "evidencia",
+          "accept": ["image/*", "video/*"]
+        }
+      ]
+    }
+  }
+}
