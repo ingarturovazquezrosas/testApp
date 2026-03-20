@@ -1,58 +1,20 @@
 {
-  "name": "VozSegura — Red Ciudadana P2P",
-  "short_name": "VozSegura",
-  "description": "Denuncia ciudadana anónima y descentralizada. Sin servidor central. Sin miedo.",
-  "start_url": "/",
-  "scope": "/",
+  "name": "Alerta MX — Red Ciudadana",
+  "short_name": "Alerta MX",
+  "description": "Red ciudadana descentralizada de alertas de seguridad. Denuncia anónima, sin estado, P2P.",
+  "start_url": "./index.html",
   "display": "standalone",
-  "orientation": "portrait",
-  "background_color": "#070810",
-  "theme_color": "#070810",
-  "lang": "es-MX",
-  "categories": ["security", "social", "utilities"],
-
+  "background_color": "#07070d",
+  "theme_color": "#0a0a0f",
+  "orientation": "portrait-primary",
+  "lang": "es",
+  "categories": ["utilities", "social", "security"],
   "icons": [
-    {
-      "src": "icons/icon-72.png",
-      "sizes": "72x72",
-      "type": "image/png",
-      "purpose": "any"
-    },
-    {
-      "src": "icons/icon-96.png",
-      "sizes": "96x96",
-      "type": "image/png",
-      "purpose": "any"
-    },
-    {
-      "src": "icons/icon-128.png",
-      "sizes": "128x128",
-      "type": "image/png",
-      "purpose": "any"
-    },
-    {
-      "src": "icons/icon-144.png",
-      "sizes": "144x144",
-      "type": "image/png",
-      "purpose": "any"
-    },
-    {
-      "src": "icons/icon-152.png",
-      "sizes": "152x152",
-      "type": "image/png",
-      "purpose": "any"
-    },
     {
       "src": "icons/icon-192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any maskable"
-    },
-    {
-      "src": "icons/icon-384.png",
-      "sizes": "384x384",
-      "type": "image/png",
-      "purpose": "any"
     },
     {
       "src": "icons/icon-512.png",
@@ -61,50 +23,23 @@
       "purpose": "any maskable"
     }
   ],
-
-  "screenshots": [
-    {
-      "src": "icons/screenshot-mobile.png",
-      "sizes": "390x844",
-      "type": "image/png",
-      "form_factor": "narrow",
-      "label": "Mapa ciudadano P2P"
-    }
-  ],
-
+  "screenshots": [],
   "shortcuts": [
     {
-      "name": "Denunciar ahora",
+      "name": "Denunciar Ahora",
       "short_name": "Denunciar",
-      "description": "Envía una denuncia anónima inmediatamente",
-      "url": "/?accion=denunciar",
-      "icons": [{ "src": "icons/icon-96.png", "sizes": "96x96" }]
+      "description": "Abre el formulario de denuncia anónima",
+      "url": "./index.html#report",
+      "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }]
     },
     {
-      "name": "Ver mapa",
+      "name": "Ver Mapa",
       "short_name": "Mapa",
-      "description": "Ver zonas de riesgo en tiempo real",
-      "url": "/?accion=mapa",
-      "icons": [{ "src": "icons/icon-96.png", "sizes": "96x96" }]
+      "description": "Ver mapa de alertas en tu zona",
+      "url": "./index.html#map",
+      "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }]
     }
   ],
-
   "related_applications": [],
-  "prefer_related_applications": false,
-
-  "share_target": {
-    "action": "/?accion=compartir",
-    "method": "POST",
-    "enctype": "multipart/form-data",
-    "params": {
-      "title": "titulo",
-      "text": "texto",
-      "files": [
-        {
-          "name": "evidencia",
-          "accept": ["image/*", "video/*"]
-        }
-      ]
-    }
-  }
+  "prefer_related_applications": false
 }
